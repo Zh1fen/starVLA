@@ -10,6 +10,27 @@ import imageio
 import numpy as np
 import tqdm
 import tyro
+
+
+def _redirect_robosuite_log() -> None:
+    """Avoid import-time failure when `/tmp/robosuite.log` is owned by another user."""
+    repo_log_dir = pathlib.Path.cwd() / "tmp"
+    repo_log_dir.mkdir(parents=True, exist_ok=True)
+    redirected_log = repo_log_dir / "robosuite.log"
+
+    original_file_handler = logging.FileHandler
+
+    class PatchedFileHandler(original_file_handler):
+        def __init__(self, filename, *args, **kwargs):
+            if filename == "/tmp/robosuite.log":
+                filename = str(redirected_log)
+            super().__init__(filename, *args, **kwargs)
+
+    logging.FileHandler = PatchedFileHandler
+
+
+_redirect_robosuite_log()
+
 from libero.libero import benchmark, get_libero_path
 from libero.libero.envs import OffScreenRenderEnv
 
