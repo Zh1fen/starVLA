@@ -32,6 +32,35 @@ vlm = get_vlm_model(config)  # 根据 config.framework.qwenvl.base_vlm 路由
 | `QWen3_5.py` | `_QWen3_5_VL_Interface` | Qwen3.5-VL 系列 |
 | `Florence2.py` | `_Florence_Interface` | Florence-2 系列 |
 
+## Qwen LoRA 微调
+
+第一版 LoRA 只接在 Qwen 系 wrapper 上：
+
+- `QWen2_5.py`
+- `QWen3.py`
+- `QWen3_5.py`
+
+配置入口统一放在 `framework.qwenvl` 下：
+
+```yaml
+framework:
+  qwenvl:
+    enable_gradient_checkpointing: true
+    lora:
+      enabled: true
+      r: 16
+      alpha: 32
+      dropout: 0.05
+      bias: none
+      target_modules: auto
+```
+
+注意：
+
+- `trainer.gradient_checkpointing` 不是 VLM 的真实开关；Qwen wrapper 实际读取的是 `framework.qwenvl.enable_gradient_checkpointing`
+- 开启 LoRA 时，不要再把 `qwen_vl_interface` 写进 `trainer.freeze_modules`
+- `learning_rate.qwen_vl_interface` 会自动只作用于 trainable 的 LoRA 参数，而不是整套 base VLM
+
 ## 与 World Model 的关系
 
 Cosmos-Reason2 已迁移至 `starVLA/model/modules/world_model/`。

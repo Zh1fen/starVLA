@@ -6,6 +6,11 @@ from typing import Optional
 
 import torch
 from starVLA.training.trainer_utils import initialize_overwatch
+from starVLA.model.modules.vlm.lora_utils import (
+    apply_lora_if_enabled,
+    enable_gradient_checkpointing_if_needed,
+    get_model_device,
+)
 from transformers import AutoProcessor, Qwen3VLForConditionalGeneration
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
@@ -64,6 +69,8 @@ class _QWen3_VL_Interface(nn.Module):
             dtype=torch.bfloat16,
             ignore_mismatched_sizes=True, # resize image no longer needed? @TODO check bug
         )
+        enable_gradient_checkpointing_if_needed(model, config)
+        model = apply_lora_if_enabled(model, config)
         processor = AutoProcessor.from_pretrained(model_id)
         processor.tokenizer.padding_side = "left"
 
@@ -169,7 +176,7 @@ class _QWen3_VL_Interface(nn.Module):
             labels[labels == self.processor.tokenizer.pad_token_id] = -100  ## mask out pad tokens as well
             batch_inputs["labels"] = labels
 
-        return batch_inputs.to(self.model.device)
+        return batch_inputs.to(get_model_device(self.model))
 
 
 if __name__ == "__main__":

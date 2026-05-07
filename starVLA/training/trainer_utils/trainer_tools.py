@@ -92,7 +92,11 @@ def build_param_lr_groups(model, cfg):
             for attr in module_name.split("."):
                 module = getattr(module, attr)
             # filter out frozen parameters
-            params = [p for p in module.parameters() if id(p) not in frozen_params]
+            params = [
+                p
+                for p in module.parameters()
+                if p.requires_grad and id(p) not in frozen_params and id(p) not in used_params
+            ]
             if params:  # only add param group if there are trainable parameters
                 param_groups.append({"params": params, "lr": lr, "name": module_name})
                 used_params.update(id(p) for p in params)
@@ -100,11 +104,38 @@ def build_param_lr_groups(model, cfg):
             ReferenceError(f"⚠️ module path `{module_name}` not found in vla")
 
     # assign base learning rate to the remaining unused parameters (exclude frozen ones)
-    other_params = [p for p in model.parameters() if id(p) not in used_params and id(p) not in frozen_params]
+    other_params = [
+        p for p in model.parameters() if p.requires_grad and id(p) not in used_params and id(p) not in frozen_params
+    ]
     if other_params:
         param_groups.append({"params": other_params, "lr": base_lr, "name": "base"})
 
     return param_groups
+
+
+def validate_lora_training_config(cfg):
+    qwenvl_cfg = getattr(getattr(cfg, "framework", None), "qwenvl", None)
+    lora_cfg = getattr(qwenvl_cfg, "lora", None)
+    lora_enabled = bool(getattr(lora_cfg, "enabled", False)) if lora_cfg is not None else False
+    if not lora_enabled:
+        return
+
+    freeze_modules = cfg.trainer.get("freeze_modules", "")
+    if not isinstance(freeze_modules, str):
+        freeze_modules = ""
+
+    freeze_patterns = [pattern.strip() for pattern in freeze_modules.split(",") if pattern.strip()]
+    conflicts = [
+        pattern
+        for pattern in freeze_patterns
+        if pattern == "qwen_vl_interface" or pattern.startswith("qwen_vl_interface.")
+    ]
+    if conflicts:
+        raise ValueError(
+            "LoRA is enabled under `framework.qwenvl.lora.enabled=true`, but "
+            f"`trainer.freeze_modules` also freezes `{conflicts}`. "
+            "Remove `qwen_vl_interface` from `trainer.freeze_modules`; PEFT already freezes the base VLM."
+        )
 
 
 import torch.distributed as dist

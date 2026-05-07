@@ -11,15 +11,21 @@ export NCCL_SOCKET_TIMEOUT_MS=360000
 ###########################################################################################
 # === Please modify the following paths according to your environment ===
 Framework_name=QwenOFT
-freeze_module_list=''
+freeze_module_list=''  # when use_lora=true, keep this empty; do not freeze qwen_vl_interface
 base_vlm=playground/Pretrained_models/Qwen3-VL-4B-Instruct
-config_yaml=./examples/LIBERO/train_files/starvla_cotrain_libero.yaml
+config_yaml=./examples/LIBERO/train_files/starvla_cotrain_libero_lora.yaml
 libero_data_root=playground/Datasets/LEROBOT_LIBERO_DATA
 data_mix=libero_all
 run_root_dir=./playground/Checkpoints
 run_id=1229_libero4in1_qwen3oft
 cuda_visible_devices=0
 num_processes=1
+enable_gradient_checkpointing=true
+use_lora=false
+lora_r=16
+lora_alpha=32
+lora_dropout=0.05
+lora_target_modules=auto
 # === End of environment variable configuration ===
 ###########################################################################################
 
@@ -38,6 +44,12 @@ CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_yaml ${config_yaml} \
   --framework.name ${Framework_name} \
   --framework.qwenvl.base_vlm ${base_vlm} \
+  --framework.qwenvl.enable_gradient_checkpointing ${enable_gradient_checkpointing} \
+  --framework.qwenvl.lora.enabled ${use_lora} \
+  --framework.qwenvl.lora.r ${lora_r} \
+  --framework.qwenvl.lora.alpha ${lora_alpha} \
+  --framework.qwenvl.lora.dropout ${lora_dropout} \
+  --framework.qwenvl.lora.target_modules ${lora_target_modules} \
   --datasets.vla_data.data_root_dir ${libero_data_root}\
   --datasets.vla_data.data_mix ${data_mix} \
   --datasets.vla_data.per_device_batch_size 16 \

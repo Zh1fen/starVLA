@@ -9,6 +9,11 @@ from starVLA.training.trainer_utils import initialize_overwatch
 from qwen_vl_utils import process_vision_info
 from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
 from transformers.modeling_outputs import CausalLMOutputWithPast
+from starVLA.model.modules.vlm.lora_utils import (
+    apply_lora_if_enabled,
+    enable_gradient_checkpointing_if_needed,
+    get_model_device,
+)
 
 logger = initialize_overwatch(__name__)
 
@@ -93,6 +98,8 @@ class _QWen_VL_Interface(nn.Module):
             attn_implementation=attn_implementation,
             torch_dtype="auto",
         )
+        enable_gradient_checkpointing_if_needed(model, config)
+        model = apply_lora_if_enabled(model, config)
         processor = AutoProcessor.from_pretrained(model_id)
         processor.tokenizer.padding_side = "left"
 
@@ -300,7 +307,7 @@ class _QWen_VL_Interface(nn.Module):
             labels[labels == self.processor.tokenizer.pad_token_id] = -100  ## mask out pad tokens as well
             batch_input["labels"] = labels
 
-        return batch_input.to(self.model.device)
+        return batch_input.to(get_model_device(self.model))
 
 
 if __name__ == "__main__":
