@@ -15,6 +15,8 @@ config_yaml=./examples/Robotwin/train_files/starvla_cotrain_robotwin_abs.yaml
 run_root_dir=./results/Checkpoints
 data_mix=robotwin_all_50
 run_id=0129_${data_mix}_qwen3OFT_all
+cuda_visible_devices=0
+num_processes=1
 # === End of environment variable configuration ===
 ###########################################################################################
 
@@ -27,9 +29,9 @@ mkdir -p ${output_dir}
 cp $0 ${output_dir}/
 
 
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes 8 \
+  --num_processes ${num_processes} \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
   --framework.name ${Framework_name} \

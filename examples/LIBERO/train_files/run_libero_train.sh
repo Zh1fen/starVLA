@@ -18,6 +18,8 @@ libero_data_root=playground/Datasets/LEROBOT_LIBERO_DATA
 data_mix=libero_all
 run_root_dir=./playground/Checkpoints
 run_id=1229_libero4in1_qwen3oft
+cuda_visible_devices=0
+num_processes=1
 # === End of environment variable configuration ===
 ###########################################################################################
 
@@ -29,10 +31,9 @@ mkdir -p ${output_dir}
 # mv this script to the output dir
 cp $0 ${output_dir}/
 
-
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes 8 \
+  --num_processes ${num_processes} \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
   --framework.name ${Framework_name} \

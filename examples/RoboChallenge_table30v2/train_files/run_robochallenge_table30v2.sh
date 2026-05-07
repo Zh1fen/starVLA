@@ -14,8 +14,9 @@ fi
 export CUDA_HOME=${CUDA_HOME:-/cm/shared/apps/cuda12.2/toolkit/12.2.2}
 export PATH=${CUDA_HOME}/bin:${PATH}
 
-# How many GPUs to use; defaults to all visible.
-NUM_GPUS=${NUM_GPUS:-$(python -c "import torch;print(torch.cuda.device_count())")}
+# GPU visibility / process count. Keep these two values aligned.
+cuda_visible_devices=${CUDA_VISIBLE_DEVICES:-0}
+num_processes=${NUM_PROCESSES:-1}
 
 # ---- training knobs (edit here) ----
 TASK=shred_paper
@@ -34,9 +35,9 @@ cp "$0" "${output_dir}/"
 # Disable WandB for the walk-through; remove this line and `wandb login` for real runs.
 export WANDB_MODE=${WANDB_MODE:-disabled}
 
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes "${NUM_GPUS}" \
+  --num_processes "${num_processes}" \
   starVLA/training/train_starvla.py \
   --config_yaml ./examples/RoboChallenge_table30v2/train_files/starvla_qwenoft_robochallenge_table30v2.yaml \
   --datasets.vla_data.per_device_batch_size "${BATCH}" \

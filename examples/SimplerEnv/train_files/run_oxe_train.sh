@@ -18,6 +18,8 @@ oxe_data_root=playground/Datasets/OXE_LEROBOT
 data_mix=bridge_rt_1
 run_root_dir=./results/Checkpoints
 run_id=1221_${data_mix}_${Framework_name}
+cuda_visible_devices=0
+num_processes=1
 # === End of environment variable configuration ===
 ###########################################################################################
 
@@ -31,9 +33,9 @@ cp $0 ${output_dir}/
 
 
 
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes 8 \
+  --num_processes ${num_processes} \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
   --framework.name ${Framework_name} \

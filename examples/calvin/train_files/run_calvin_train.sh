@@ -1,6 +1,3 @@
-# export CUDA_VISIBLE_DEVICES=0
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
-
 # export NCCL_SOCKET_IFNAME=bond0
 # export NCCL_IB_HCA=mlx5_2,mlx5_3
 
@@ -21,6 +18,8 @@ data_mix=calvin_task_D_D
 run_root_dir=./results/Checkpoints
 run_id=0118_starvla_qwenpi_calvin_task_D_D
 export action_input_dim=2048
+cuda_visible_devices=0
+num_processes=1
 # === End of environment variable configuration ===
 ###########################################################################################
 
@@ -32,9 +31,9 @@ mkdir -p ${output_dir}
 # mv this script to the output dir
 cp $0 ${output_dir}/
 
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes 8 \
+  --num_processes ${num_processes} \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
   --framework.name ${Framework_name} \

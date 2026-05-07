@@ -14,6 +14,8 @@ base_vlm=playground/Pretrained_models/Qwen3-VL-4B-Instruct-Action
 config_yaml=./examples/Franka/train_files/starvla_cotrain_franka_dual.yaml
 run_root_dir=./results/Checkpoints
 run_id=0128_${data_mix}_qwen3OFT
+cuda_visible_devices=0
+num_processes=1
 # === End of environment variable configuration ===
 ###########################################################################################
 
@@ -27,9 +29,9 @@ cp $0 ${output_dir}/
 
 
 
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes 8 \
+  --num_processes ${num_processes} \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
   --framework.name ${Framework_name} \

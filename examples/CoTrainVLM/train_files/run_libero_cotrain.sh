@@ -18,6 +18,8 @@ libero_data_root=playground/Datasets/LEROBOT_LIBERO_DATA
 data_mix=libero_all
 run_root_dir=./playground/Checkpoints
 run_id=1207_libero4in1_qwen3fast_cotrain
+cuda_visible_devices=0
+num_processes=1
 # === End of environment variable configuration ===
 ###########################################################################################
 
@@ -30,9 +32,9 @@ mkdir -p ${output_dir}
 cp $0 ${output_dir}/
 
 
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes 8 \
+  --num_processes ${num_processes} \
   starVLA/training/train_starvla_cotrain.py \
   --config_yaml ${config_yaml} \
   --framework.name ${Framework_name} \
@@ -72,5 +74,4 @@ accelerate launch \
   #   --wandb_project your_project \
   #   --wandb_entity your_name
 ##### Multi-Server Multi-GPU training script #####
-
 

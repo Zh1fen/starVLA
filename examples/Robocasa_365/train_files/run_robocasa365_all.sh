@@ -33,8 +33,9 @@ if [[ "${CONDA_DEFAULT_ENV:-}" != "starVLA" ]]; then
   conda activate starVLA
 fi
 
-# How many GPUs to use; falls back to "all visible".
-NUM_GPUS=${NUM_GPUS:-$(python -c "import torch;print(torch.cuda.device_count())")}
+# GPU visibility / process count. Keep these two values aligned.
+cuda_visible_devices=${CUDA_VISIBLE_DEVICES:-0}
+num_processes=${NUM_PROCESSES:-1}
 
 # ---- training knobs (edit here) ----
 MIXTURE=robocasa365_target_human_all   # also: robocasa365_atomic_target_human_all / robocasa365_composite_target_human_all
@@ -50,9 +51,9 @@ output_dir=${run_root_dir}/${run_id}
 mkdir -p "${output_dir}"
 cp "$0" "${output_dir}/"
 
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes "${NUM_GPUS}" \
+  --num_processes "${num_processes}" \
   starVLA/training/train_starvla.py \
   --config_yaml ./examples/Robocasa_365/train_files/starvla_qwenoft_robocasa365.yaml \
   --datasets.vla_data.data_mix "${MIXTURE}" \

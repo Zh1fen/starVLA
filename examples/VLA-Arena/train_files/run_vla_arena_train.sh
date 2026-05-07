@@ -41,6 +41,8 @@ data_mix=vla_arena_L0_L
 
 run_root_dir=./results/Checkpoints
 run_id=vla_arena_qwenoft_all
+cuda_visible_devices=0
+num_processes=1
 # ---------------------------------------------------------------------------
 
 output_dir=${run_root_dir}/${run_id}
@@ -51,9 +53,9 @@ cp $0 ${output_dir}/
 # ---------------------------------------------------------------------------
 # Single-node launch (8 GPUs via accelerate + DeepSpeed ZeRO-2)
 # ---------------------------------------------------------------------------
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes 8 \
+  --num_processes ${num_processes} \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
   --framework.name ${Framework_name} \

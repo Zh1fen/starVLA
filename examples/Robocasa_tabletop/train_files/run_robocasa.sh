@@ -12,6 +12,8 @@ freeze_module_list='' # just for fast debug, sota is under fully FT, i.g., freez
 DIT_TYPE="DiT-B"
 data_root_dir=./playground/Datasets/PhysicalAI-Robotics-GR00T-X-Embodiment-Sim
 data_mix=fourier_gr1_unified_1000
+cuda_visible_devices=0
+num_processes=1
 
 
 run_root_dir=./playground/Checkpoints
@@ -24,9 +26,9 @@ mkdir -p ${output_dir}
 # mv this script to the output dir
 cp $0 ${output_dir}/
 
-accelerate launch \
+CUDA_VISIBLE_DEVICES=${cuda_visible_devices} accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
-  --num_processes 8 \
+  --num_processes ${num_processes} \
   starVLA/training/train_starvla.py \
   --config_yaml ./examples/Robocasa_tabletop/train_files/starvla_cotrain_robocasa_gr1.yaml \
   --framework.name ${Framework_name} \
@@ -46,5 +48,4 @@ accelerate launch \
   --wandb_project starVLA_robocasa \
   --wandb_entity jinhuiye \
   # --is_debug True
-
 
